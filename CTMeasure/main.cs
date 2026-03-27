@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;                       // Bitmap or Color imaging
 using System.IO;
 using System.Windows.Forms;                 // Windows Form Application Component
@@ -650,7 +650,6 @@ namespace CTMeasure
                         }));
                     };
 
-
                     simpleServer.Start(System.Net.IPAddress.Any, 5005);
                     isTCPConnected = true;
                     ConnectTCP.BackgroundImage = Properties.Resources.DisConnectTCP;
@@ -720,16 +719,19 @@ namespace CTMeasure
                 // パラメータを渡してUIフォームを生成・表示
                 UIctrl ui = new UIctrl(
                     clinetInfo,
-                    tokens[1], tokens[2], tokens[3],
-                    tokens[4], tokens[5], tokens[6],
-                    tokens[7], tokens[8], tokens[9],
-                    tokens[10], tokens[11], tokens[12],
-                    tokens[13], tokens[14], tokens[15],
-                    tokens[16], tokens[17], tokens[18],
-                    tokens[19], tokens[20], tokens[21]
+                    tokens[1], tokens[2], 
+                    tokens[3], tokens[4], 
+                    tokens[5], tokens[6],
+                    tokens[7], tokens[8], 
+                    tokens[9], tokens[10], 
+                    tokens[11], tokens[12],
+                    tokens[13], tokens[14], 
+                    tokens[15], tokens[16], 
+                    tokens[17], tokens[18],
+                    tokens[19], tokens[20]
                 );
 
-                ui.Show();         // モードレス表示
+                ui.Show();          // モードレス表示
                 ui.SetClientInfo(); // クライアントIP表示など
             }
             catch (Exception ex)

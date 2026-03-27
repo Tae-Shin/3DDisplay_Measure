@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -26,9 +26,8 @@ namespace CTMeasure
         int picVal;
         int matVal;
         int oriVal;
-        int ondotVal;
-        float BarrierPitchVal;
-        float dThetaVal; // ★追加: Thetaの初期値用
+        float phiVal;
+        private bool _isSyncingUI;
 
         // トラックバー値
         public string _Lx_value;
@@ -40,19 +39,7 @@ namespace CTMeasure
         public string _Pic_value;
         public string _Mat_value;
         public string _Ori_value;
-        public string _OnDotNum_value;
-        public string _BarrierPitch_value;
-
-        // TextBoxの値反映フラグ
-        private bool _isSyncingUI = false;
-
-        // ---- Barrier Pitch slider scaling (7桁小数 = 0.0000001 mm/step) ----
-        const int BP_SCALE = 10000000; // 1 tick = 0.0000001 mm
-        const double BP_MIN = 0.2500000;
-        const double BP_MAX = 0.2560000;
-
-        // ★追加: Theta slider scaling (0.01度精度)
-        const int THETA_SCALE = 10000;
+        public string _Phi_value;
 
         public UIctrl(string clientInfo,
               string lx, string lx_int,
@@ -64,8 +51,7 @@ namespace CTMeasure
               string pic, string pic_int,
               string mat, string mat_int,
               string ori, string ori_int,
-              string ondotNum, string ondotNum_int,
-              string dtheta = "0", string dtheta_int = "0"
+              string phi, string phi_int
             )
         {
             InitializeComponent();
@@ -81,26 +67,9 @@ namespace CTMeasure
             WireTextBoxToBarConfirmOnly(Picture_Box, Picture_Bar, 1, Picture_Int);
             WireTextBoxToBarConfirmOnly(Material_Box, Material_Bar, 1, Material_Int);
             WireTextBoxToBarConfirmOnly(Origin_Box, Origin_Bar, 1, Origin_Int);
-            WireTextBoxToBarConfirmOnly(OnDotNum_Box, OnDotNum_Bar, 1, OnDotNum_Int);
-
-            WireTextBoxToBarConfirmOnly(BarrierPitch_Box, BarrierPitch_Bar, BP_SCALE, null);
-
-            // ★追加: Theta用のTextBox連携 (Scale 100)
-            WireTextBoxToBarConfirmOnly(dTheta_Box, dTheta_Bar, THETA_SCALE, dTheta_Int);
+            WireTextBoxToBarConfirmOnly(Phi_Box, Phi_Bar, 10000, Phi_Int);
 
             _ClientInfo = clientInfo;
-
-            // Barrier Pitch設定
-            BarrierPitch_Bar.Minimum = (int)Math.Round(BP_MIN * BP_SCALE);
-            BarrierPitch_Bar.Maximum = (int)Math.Round(BP_MAX * BP_SCALE);
-            BarrierPitch_Bar.SmallChange = 1;    // 0.0000001 mm
-            BarrierPitch_Bar.LargeChange = 100;  // 0.0000100 mm
-
-            // ★追加: Theta Bar設定 (-2.00度 ～ +2.00度)
-            dTheta_Bar.Minimum = -94630;
-            dTheta_Bar.Maximum = 50000;
-            dTheta_Bar.SmallChange = 1; // 0.01度
-            dTheta_Bar.LargeChange = 1000; // 0.1度
 
             // 実数
             float.TryParse(lx, out lxVal);
@@ -109,12 +78,11 @@ namespace CTMeasure
             float.TryParse(rx, out rxVal);
             float.TryParse(ry, out ryVal);
             float.TryParse(rz, out rzVal);
-            float.TryParse(dtheta, out dThetaVal); // ★追加
+            float.TryParse(phi, out phiVal);
             // 整数
             int.TryParse(pic, out picVal);
             int.TryParse(mat, out matVal);
             int.TryParse(ori, out oriVal);
-            int.TryParse(ondotNum, out ondotVal);
             // 真偽（"1" / "0" → true / false）
             bool lx_intVal = lx_int == "1";
             bool ly_intVal = ly_int == "1";
@@ -125,8 +93,7 @@ namespace CTMeasure
             bool pic_intVal = pic_int == "1";
             bool mat_intVal = mat_int == "1";
             bool ori_intVal = ori_int == "1";
-            bool ondotNum_intVal = ondotNum_int == "1";
-            bool dtheta_intVal = dtheta_int == "1"; // ★追加
+            bool phi_intVal = phi_int == "1";
 
             // ------ UI初期化 ------
             // 左目
@@ -141,14 +108,9 @@ namespace CTMeasure
             Picture_Bar.Value = picVal;
             Material_Bar.Value = matVal;
             Origin_Bar.Value = oriVal;
-            OnDotNum_Bar.Value = ondotVal;
-            int bpInit = (int)Math.Round(BarrierPitchVal * BP_SCALE);
-            bpInit = Math.Max(BarrierPitch_Bar.Minimum, Math.Min(BarrierPitch_Bar.Maximum, bpInit));
-            BarrierPitch_Bar.Value = bpInit;
-            // ★追加: Theta Bar初期値
-            int thetaInit = (int)Math.Round(dThetaVal * THETA_SCALE);
-            thetaInit = Math.Max(dTheta_Bar.Minimum, Math.Min(dTheta_Bar.Maximum, thetaInit));
-            dTheta_Bar.Value = thetaInit;
+
+            // 設計パラメータ
+            Phi_Bar.Value = (int)Math.Round(phiVal * 10000);
 
             // ------ テキストボックス表示 ------
             // 左目
@@ -163,10 +125,9 @@ namespace CTMeasure
             Picture_Box.Text = picVal.ToString();
             Material_Box.Text = matVal.ToString();
             Origin_Box.Text = oriVal.ToString();
-            OnDotNum_Box.Text = ondotVal.ToString();
-            BarrierPitch_Box.Text = (BarrierPitch_Bar.Value / (double)BP_SCALE).ToString("F7");
-            // ★追加
-            dTheta_Box.Text = ((double)dThetaVal).ToString("F");
+            
+            // 設計パラメータ
+            Phi_Box.Text = phiVal.ToString("F4");
 
             // ------ チェックボックス代入 ------
             Lx_Int.Checked = lx_intVal;
@@ -178,8 +139,7 @@ namespace CTMeasure
             Picture_Int.Checked = pic_intVal;
             Material_Int.Checked = mat_intVal;
             Origin_Int.Checked = ori_intVal;
-            OnDotNum_Int.Checked = ondotNum_intVal;
-            dTheta_Int.Checked = dtheta_intVal; // ★追加
+            Phi_Int.Checked = phi_intVal;
         }
 
 
@@ -238,7 +198,6 @@ namespace CTMeasure
             if (Rx_Int.Checked)
             {
                 Rx_Box.Text = ((int)Rx_Bar.Value / 10).ToString();
-
             }
             else
             {
@@ -252,7 +211,6 @@ namespace CTMeasure
             if (Ry_Int.Checked)
             {
                 Ry_Box.Text = ((int)Ry_Bar.Value / 10).ToString();
-
             }
             else
             {
@@ -266,20 +224,11 @@ namespace CTMeasure
             if (Rz_Int.Checked)
             {
                 Rz_Box.Text = ((int)Rz_Bar.Value / 10).ToString();
-
             }
             else
             {
                 Rz_Box.Text = ((double)Rz_Bar.Value / 10).ToString();
             }
-            SendToClient();
-        }
-
-        // ★追加: Theta Bar スクロールイベント
-        private void dTheta_Bar_Scroll(object sender, EventArgs e)
-        {
-            // 値を更新 (scale 100 なので 0.01単位)
-            dTheta_Box.Text = ((double)dTheta_Bar.Value / (double)THETA_SCALE).ToString("F4");
             SendToClient();
         }
 
@@ -300,18 +249,6 @@ namespace CTMeasure
         private void Origin_Bar_Scroll(object sender, EventArgs e)
         {
             Origin_Box.Text = Origin_Bar.Value.ToString();
-            SendToClient();
-        }
-
-        private void OnDotNum_Bar_Scroll(object sender, EventArgs e)
-        {
-            OnDotNum_Box.Text = OnDotNum_Bar.Value.ToString();
-            SendToClient();
-        }
-
-        private void BarrierPitch_Bar_Scroll(object sender, EventArgs e)
-        {
-            BarrierPitch_Box.Text = (BarrierPitch_Bar.Value / (double)BP_SCALE).ToString("F7");
             SendToClient();
         }
 
@@ -475,30 +412,26 @@ namespace CTMeasure
             SendToClient();
         }
 
-        private void OnDotNum_Reset_Click(object sender, EventArgs e)
+        // Phi スライダー
+        private void Phi_Bar_Scroll(object sender, EventArgs e)
         {
-            OnDotNum_Bar.Value = ondotVal;
-            OnDotNum_Box.Text = ondotVal.ToString();
-
+            if (Phi_Int.Checked)
+            {
+                // Int モード: 1°単位に丸める
+                Phi_Box.Text = ((int)Math.Round((double)Phi_Bar.Value / 10000)).ToString();
+            }
+            else
+            {
+                Phi_Box.Text = ((double)Phi_Bar.Value / 10000).ToString("F4");
+            }
             SendToClient();
         }
 
-        private void BarrierPitch_Reset_Click(object sender, EventArgs e)
+        // Phi リセット
+        private void Phi_Reset_Click(object sender, EventArgs e)
         {
-            int v = (int)Math.Round(BarrierPitchVal * BP_SCALE);
-            v = Math.Max(BarrierPitch_Bar.Minimum, Math.Min(BarrierPitch_Bar.Maximum, v));
-            BarrierPitch_Bar.Value = v;
-            BarrierPitch_Box.Text = (v / (double)BP_SCALE).ToString("F7");
-            SendToClient();
-        }
-
-        // ★追加: Theta Reset
-        private void dTheta_Reset_Click(object sender, EventArgs e)
-        {
-            int v = (int)Math.Round(dThetaVal * THETA_SCALE);
-            v = Math.Max(dTheta_Bar.Minimum, Math.Min(dTheta_Bar.Maximum, v));
-            dTheta_Bar.Value = v;
-            dTheta_Box.Text = ((double)dThetaVal).ToString("F4");
+            Phi_Bar.Value = (int)Math.Round(phiVal * 10000);
+            Phi_Box.Text = phiVal.ToString("F4");
 
             SendToClient();
         }
@@ -560,8 +493,7 @@ namespace CTMeasure
                     + Picture_Box.Text + "/" + (Picture_Int.Checked ? "1" : "0") + "/"
                     + Material_Box.Text + "/" + (Material_Int.Checked ? "1" : "0") + "/"
                     + Origin_Box.Text + "/" + (Origin_Int.Checked ? "1" : "0") + "/"
-                    + OnDotNum_Box.Text + "/" + (OnDotNum_Int.Checked ? "1" : "0") + "/"
-                    + dTheta_Box.Text + "/"
+                    + Phi_Box.Text + "/" + (Phi_Int.Checked ? "1" : "0") + "/"
                     + (UI_toggle.Checked ? "1" : "0") + "\n";
 
                 CrossTalkMeasure.lastClient.ReplyLine(message);
