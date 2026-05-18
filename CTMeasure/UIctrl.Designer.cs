@@ -723,6 +723,7 @@ namespace CTMeasure
             this.k_Reset.TabIndex = 28;
             this.k_Reset.Text = "Reset";
             this.k_Reset.UseVisualStyleBackColor = true;
+            this.k_Reset.Click += new System.EventHandler(this.K_Reset_Click);
             // 
             // k_Box
             // 
@@ -744,9 +745,13 @@ namespace CTMeasure
             // k_Bar
             // 
             this.k_Bar.Location = new System.Drawing.Point(207, 52);
+            this.k_Bar.Maximum = 24000;
+            this.k_Bar.Minimum = 22000;
             this.k_Bar.Name = "k_Bar";
             this.k_Bar.Size = new System.Drawing.Size(278, 45);
             this.k_Bar.TabIndex = 25;
+            this.k_Bar.Value = 22000;
+            this.k_Bar.Scroll += new System.EventHandler(this.K_Bar_Scroll);
             // 
             // Phi_Int
             // 
@@ -761,11 +766,12 @@ namespace CTMeasure
             // Phi_Bar
             // 
             this.Phi_Bar.Location = new System.Drawing.Point(207, 146);
-            this.Phi_Bar.Maximum = 100000;
-            this.Phi_Bar.Minimum = -100000;
+            this.Phi_Bar.Maximum = 10000;
+            this.Phi_Bar.Minimum = -10000;
             this.Phi_Bar.Name = "Phi_Bar";
             this.Phi_Bar.Size = new System.Drawing.Size(278, 45);
             this.Phi_Bar.TabIndex = 20;
+            this.Phi_Bar.Value = 10000;
             this.Phi_Bar.Scroll += new System.EventHandler(this.Phi_Bar_Scroll);
             // 
             // Phi_Reset

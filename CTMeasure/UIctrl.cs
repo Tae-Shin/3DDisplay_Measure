@@ -27,6 +27,7 @@ namespace CTMeasure
         int matVal;
         int oriVal;
         float phiVal;
+        float kVal;
         private bool _isSyncingUI;
 
         // トラックバー値
@@ -40,6 +41,7 @@ namespace CTMeasure
         public string _Mat_value;
         public string _Ori_value;
         public string _Phi_value;
+        public string _k_value;
 
         public UIctrl(string clientInfo,
               string lx, string lx_int,
@@ -51,7 +53,8 @@ namespace CTMeasure
               string pic, string pic_int,
               string mat, string mat_int,
               string ori, string ori_int,
-              string phi, string phi_int
+              string phi, string phi_int,
+              string k, string k_int
             )
         {
             InitializeComponent();
@@ -68,6 +71,7 @@ namespace CTMeasure
             WireTextBoxToBarConfirmOnly(Material_Box, Material_Bar, 1, Material_Int);
             WireTextBoxToBarConfirmOnly(Origin_Box, Origin_Bar, 1, Origin_Int);
             WireTextBoxToBarConfirmOnly(Phi_Box, Phi_Bar, 10000, Phi_Int);
+            WireTextBoxToBarConfirmOnly(k_Box, k_Bar, 100000, k_Int);
 
             _ClientInfo = clientInfo;
 
@@ -79,6 +83,7 @@ namespace CTMeasure
             float.TryParse(ry, out ryVal);
             float.TryParse(rz, out rzVal);
             float.TryParse(phi, out phiVal);
+            float.TryParse(k, out kVal);
             // 整数
             int.TryParse(pic, out picVal);
             int.TryParse(mat, out matVal);
@@ -94,6 +99,7 @@ namespace CTMeasure
             bool mat_intVal = mat_int == "1";
             bool ori_intVal = ori_int == "1";
             bool phi_intVal = phi_int == "1";
+            bool k_intVal = k_int == "1";
 
             // ------ UI初期化 ------
             // 左目
@@ -111,6 +117,7 @@ namespace CTMeasure
 
             // 設計パラメータ
             Phi_Bar.Value = (int)Math.Round(phiVal * 10000);
+            k_Bar.Value = (int)Math.Round(kVal * 100000);
 
             // ------ テキストボックス表示 ------
             // 左目
@@ -128,6 +135,7 @@ namespace CTMeasure
             
             // 設計パラメータ
             Phi_Box.Text = phiVal.ToString("F4");
+            k_Box.Text = kVal.ToString("F5");
 
             // ------ チェックボックス代入 ------
             Lx_Int.Checked = lx_intVal;
@@ -140,6 +148,7 @@ namespace CTMeasure
             Material_Int.Checked = mat_intVal;
             Origin_Int.Checked = ori_intVal;
             Phi_Int.Checked = phi_intVal;
+            k_Int.Checked = k_intVal;
         }
 
 
@@ -436,6 +445,30 @@ namespace CTMeasure
             SendToClient();
         }
 
+        // 視差画像を構成する水平ピッチk スライダー
+        private void K_Bar_Scroll(object sender, EventArgs e)
+        {
+            if (k_Int.Checked)
+            {
+                // Int モード
+                k_Box.Text = ((int)Math.Round((double)k_Bar.Value / 100000)).ToString();
+            }
+            else
+            {
+                k_Box.Text = ((double)k_Bar.Value / 100000).ToString("F5");
+            }
+            SendToClient();
+        }
+
+        // K リセット
+        private void K_Reset_Click(object sender, EventArgs e)
+        {
+            k_Bar.Value = (int)Math.Round(kVal * 100000);
+            k_Box.Text = kVal.ToString("F5");
+
+            SendToClient();
+        }
+
         // テキストボックス イベント
         // 確定時のみ TextBox → TrackBar に反映
         private void WireTextBoxToBarConfirmOnly(TextBox box, System.Windows.Forms.TrackBar bar, double scale, CheckBox intCheck = null)
@@ -494,6 +527,7 @@ namespace CTMeasure
                     + Material_Box.Text + "/" + (Material_Int.Checked ? "1" : "0") + "/"
                     + Origin_Box.Text + "/" + (Origin_Int.Checked ? "1" : "0") + "/"
                     + Phi_Box.Text + "/" + (Phi_Int.Checked ? "1" : "0") + "/"
+                    + k_Box.Text + "/" + (k_Int.Checked ? "1" : "0") + "/"
                     + (UI_toggle.Checked ? "1" : "0") + "\n";
 
                 CrossTalkMeasure.lastClient.ReplyLine(message);

@@ -502,7 +502,7 @@ namespace CTMeasure
                 // クロストーク計算
                 var results = ctr.calcCTR(roi, black, white, bw);
 
-                string message = $"クロストーク率: {results.ctr:F2} %\n"
+                string message = $"クロストーク: {results.ctr:F2} %\n"
                                + $"黒画像平均: {results.ave_b:F2}\n"
                                + $"白画像平均: {results.ave_w:F2}\n"
                                + $"黒白画像平均: {results.ave_bw:F2}";
@@ -628,7 +628,7 @@ namespace CTMeasure
                             // データスプリット
                             if (tokens.Length > 0 && tokens[0] == "current")
                             {
-                                if (tokens.Length >= 21)
+                                if (tokens.Length >= 23)
                                 {
                                     MessageBox.Show("パラメータ受信");
                                 }
@@ -650,10 +650,10 @@ namespace CTMeasure
                         }));
                     };
 
-                    simpleServer.Start(System.Net.IPAddress.Any, 5005);
+                    simpleServer.Start(System.Net.IPAddress.Any, 5000);
                     isTCPConnected = true;
                     ConnectTCP.BackgroundImage = Properties.Resources.DisConnectTCP;
-                    MessageBox.Show("Unityからの接続を待ち受けています（ポート5005）");
+                    MessageBox.Show("Unityからの接続を待ち受けています（ポート5000）");
 
                     // IP表示
                     string ip = "";
@@ -666,7 +666,7 @@ namespace CTMeasure
                         //IPv4を対象とする
                         if (a.AddressFamily.Equals(AddressFamily.InterNetwork))
                         {
-                            ip = a.ToString() + " : 5005";
+                            ip = a.ToString() + " : 5000";
                             break;
                         }
                     }
@@ -708,7 +708,7 @@ namespace CTMeasure
             }
 
             // パラメータが不足しているときの安全対策
-            if (tokens == null || tokens.Length < 21)
+            if (tokens == null || tokens.Length < 23)
             {
                 MessageBox.Show("Unityからのパラメータをまだ受信していません。", "エラー");
                 return;
@@ -728,7 +728,8 @@ namespace CTMeasure
                     tokens[13], tokens[14], 
                     tokens[15], tokens[16], 
                     tokens[17], tokens[18],
-                    tokens[19], tokens[20]
+                    tokens[19], tokens[20],
+                    tokens[21], tokens[22]
                 );
 
                 ui.Show();          // モードレス表示
