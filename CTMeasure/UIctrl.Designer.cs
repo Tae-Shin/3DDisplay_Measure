@@ -745,7 +745,7 @@ namespace CTMeasure
             // k_Bar
             // 
             this.k_Bar.Location = new System.Drawing.Point(207, 52);
-            this.k_Bar.Maximum = 24000;
+            this.k_Bar.Maximum = 26000;
             this.k_Bar.Minimum = 22000;
             this.k_Bar.Name = "k_Bar";
             this.k_Bar.Size = new System.Drawing.Size(278, 45);
